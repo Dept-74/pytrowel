@@ -126,7 +126,7 @@ class Plane(object):
 							If None, the normal of the plane will be used instead.
 		"""
 		if not isinstance(point, Point):
-			raise TypeError("Expected Vec3d for point, got ", type(point))
+			raise TypeError("Expected Point for point, got ", type(point))
 		if not isinstance(direction, (type(None), Vec3d)):
 			raise TypeError("Expected Vec3d or None for direction, got ", type(point))
 		if direction is None:
@@ -142,6 +142,21 @@ class Plane(object):
 		p = Point().fromVec3d(Vec3d().fromPoint(point)+mu*direction)
 		return p
 
+	def distanceToPoint(self, p, signed=True):
+		"""
+		Calculates the euclidian distance from a point to the plane.
+		"""
+		if not isinstance(p, Point):
+			raise TypeError("Expected Point for p, got ", type(p))
+		proj = self.lineIntersection(p)
+		if proj is None:
+			raise SystemError("Something strange happened")
+		d = Vec3d().fromPoints(proj, p).magnitude()
+		if not signed or Vec3d().fromPoints(proj, p).dot(self.normal) >=0:
+			return d
+		#else
+		return -1*d
+				
 
 
 
@@ -152,3 +167,4 @@ if __name__ == '__main__':
 	Vec3d(1, 0, 2)*4 #Deprecation warning
 	Point().fromVec3d(Vec3d(1, 0, 2))
 	assert Plane(Vec3d(0, 0, 1), Point(0, 0, 0)).lineIntersection(Point(1, 1, 5)) == Point(1, 1, 0)
+	assert Plane(Vec3d(0, 0, -1), Point(0, 0, 0)).distanceToPoint(Point(10, 20, 12)) == -12
