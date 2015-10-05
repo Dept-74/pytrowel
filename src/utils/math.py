@@ -60,6 +60,13 @@ class Vec3d(object):
             raise TypeError("Expected Vec3d, got ", type(v2))
         return self.x * v2.x + self.y * v2.y + self.z * v2.z
 
+    def cross(self, v2):
+        if not isinstance(v2, Vec3d):
+            raise TypeError("Expected Vec3d, got ", type(v2))
+        return Vec3d(self.y*v2.z-v2.y*self.z,
+                     self.z*v2.x-v2.z*self.x,
+                     self.x*v2.y-v2.x*self.y)
+
     def fromPoint(self, p):
         """
         Sets the coordinates from those of a point.
