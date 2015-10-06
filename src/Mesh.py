@@ -7,6 +7,10 @@
 ##
 
 from utils.math import Vec3d, Point, Plane
+from collections import namedtuple
+
+
+ZBounds = namedtuple("ZBounds", ["lower", "upper"])
 
 
 class Face:
@@ -14,11 +18,15 @@ class Face:
         self.v1 = v1
         self.v2 = v2
         self.v3 = v3
-        self.normal = (self.v2-self.v1).cross(self.v3-self.v1).getNormalized()
 
-    def computeNormal(self):
-        self.normal = (self.v2-self.v1).cross(self.v3-self.v1).normalize()
-        return self
+    @property
+    def normal(self):
+        return (self.v2-self.v1).cross(self.v3-self.v1).normalize()
+
+    @property
+    def zBounds(self):
+        return ZBounds(lower=min(self.v1.z, self.v2.z, self.v3.z),
+                       upper=max(self.v1.z, self.v2.z, self.v3.z))
 
     def flipVertexOrder(self):
         self.v1, self.v3 = self.v3, self.v1
@@ -35,9 +43,9 @@ class Face:
 
     def planeIntersection(self, plane, checkInclusion=True):
         if checkInclusion:
-            d1 = plane.distanceToPoint(Point().fromVec3d(self.v1))
-            d2 = plane.distanceToPoint(Point().fromVec3d(self.v2))
-            d3 = plane.distanceToPoint(Point().fromVec3d(self.v3))
+            d1 = plane.distanceToPoint(self.v1)
+            d2 = plane.distanceToPoint(self.v2)
+            d3 = plane.distanceToPoint(self.v3)
             if (d1 > 0 and d2 > 0 and d3 > 0) or (d1 < 0 and d2 < 0 and d3 < 0):
                 return []
         if d1 == 0 and d2 == 0 and d3 == 0:
@@ -51,16 +59,16 @@ class Face:
         if d3 == 0 and d2 == 0 and d1 != 0:
             return [(Point().fromVec3d(self.v2), Point().fromVec3d(self.v3))]
         if ((d1 >= 0) and (d2 < 0 and d3 < 0)) or ((d1 < 0) and (d2 >= 0 and d3 >= 0)):
-            p1 = plane.lineIntersection(Point().fromVec3d(self.v1), Vec3d().fromPoints(self.v1, self.v2))
-            p2 = plane.lineIntersection(Point().fromVec3d(self.v1), Vec3d().fromPoints(self.v1, self.v3))
+            p1 = plane.lineIntersection(self.v1, Vec3d().fromPoints(self.v1, self.v2))
+            p2 = plane.lineIntersection(self.v1, Vec3d().fromPoints(self.v1, self.v3))
             return [(p1, p2)]
         if ((d2 > 0) and (d1 < 0 and d3 < 0)) or ((d2 < 0) and (d1 > 0 and d3 > 0)):
-            p1 = plane.lineIntersection(Point().fromVec3d(self.v2), Vec3d().fromPoints(self.v2, self.v1))
-            p2 = plane.lineIntersection(Point().fromVec3d(self.v2), Vec3d().fromPoints(self.v2, self.v3))
+            p1 = plane.lineIntersection(self.v2, Vec3d().fromPoints(self.v2, self.v1))
+            p2 = plane.lineIntersection(self.v2, Vec3d().fromPoints(self.v2, self.v3))
             return [(p1, p2)]
         if ((d3 > 0) and (d2 < 0 and d1 < 0)) or ((d3 < 0) and (d2 > 0 and d1 > 0)):
-            p1 = plane.lineIntersection(Point().fromVec3d(self.v3), Vec3d().fromPoints(self.v3, self.v2))
-            p2 = plane.lineIntersection(Point().fromVec3d(self.v3), Vec3d().fromPoints(self.v3, self.v1))
+            p1 = plane.lineIntersection(self.v3, Vec3d().fromPoints(self.v3, self.v2))
+            p2 = plane.lineIntersection(self.v3, Vec3d().fromPoints(self.v3, self.v1))
             return [(p1, p2)]
         return []
 
@@ -113,3 +121,4 @@ if __name__ == '__main__':
     f = Face(Vec3d(0, 0, 0), Vec3d(1, 0, 0), Vec3d(1, 1, 0))
     print(f.planeIntersection(Plane(Vec3d(0, 0, 1), Point(0, 0, 0)))[0][0],
           f.planeIntersection(Plane(Vec3d(0, 0, 1), Point(0, 0, 0)))[0][1])
+    print(f.zBounds)

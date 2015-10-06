@@ -42,6 +42,7 @@ class Vec3d(object):
         self.y = y
         self.z = z
 
+    @property
     def magnitude(self):
         return math.sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
 
@@ -53,7 +54,7 @@ class Vec3d(object):
 
     def getNormalized(self):
         """
-        Returns the normalized vector without modifing the current vector.
+        Returns the normalized vector without modifying the current vector.
         """
         return 1 / self.magnitude() * Vec3d(self.x, self.y, self.z)
 
@@ -135,12 +136,15 @@ class Plane(object):
         Calculates intersection point with the line resulting
         from a point and a direction with the plane.
 
-        point 	Point       	A point of the line.
+        point 	Point / Vec3d  	A point of the line.
         direction 	Vec3d 	    Direction of the line.
                                 If None, the normal of the plane will be used instead.
         """
         if not isinstance(point, Point):
-            raise TypeError("Expected Point for point, got ", type(point))
+            if isinstance(point, Vec3d):
+                point = Point().fromVec3d(point)
+            else:
+                raise TypeError("Expected Point or Vec3d for point, got ", type(point))
         if not isinstance(direction, (type(None), Vec3d)):
             raise TypeError("Expected Vec3d or None for direction, got ", type(point))
         if direction is None:
@@ -160,8 +164,8 @@ class Plane(object):
         """
         Calculates the euclidian distance from a point to the plane.
         """
-        if not isinstance(p, Point):
-            raise TypeError("Expected Point for p, got ", type(p))
+        if not isinstance(p, (Point, Vec3d)):
+            raise TypeError("Expected Point or Vec3d for p, got ", type(p))
         proj = self.lineIntersection(p)
         if proj is None:
             raise SystemError("Something strange happened")
