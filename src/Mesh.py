@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 ##
@@ -7,7 +6,7 @@
 # @author: Romain DURAND
 ##
 
-from src.utils.math import Vec3d, Point
+from utils.math import Vec3d, Point
 
 
 class Face:
@@ -15,13 +14,15 @@ class Face:
         self.v1 = v1
         self.v2 = v2
         self.v3 = v3
-        self.normal = (self.v2-self.v1).cross(self.v3-self.v1).normalize()
+        self.normal = (self.v2-self.v1).cross(self.v3-self.v1).getNormalized()
 
     def computeNormal(self):
         self.normal = (self.v2-self.v1).cross(self.v3-self.v1).normalize()
+        return self
 
     def flipVertexOrder(self):
         self.v1, self.v3 = self.v3, self.v1
+        return self
 
     def getCentroid(self):
         """
@@ -31,6 +32,15 @@ class Face:
         return Point((self.v1.x+self.v2.x+self.v3.x)/3,
                      (self.v1.y+self.v2.y+self.v3.y)/3,
                      (self.v1.z+self.v2.z+self.v3.z)/3)
+
+    def planeIntersection(self, plane, checkInclusion=True):
+        if checkInclusion:
+            d1 = plane.lineIntersection(self.v1) >= 0
+            d2 = plane.lineIntersection(self.v2) >= 0
+            d3 = plane.lineIntersection(self.v3) >= 0
+            if not ((d1 and not (d2 & d3)) or (not d1 and (d2 | d3))):
+                return None
+
 
 
 class Mesh:
@@ -75,3 +85,7 @@ class Mesh:
             zmin = min(zmin, min(f.v1.z, f.v2.z, f.v3.z))
             zmax = max(zmax, max(f.v1.z, f.v2.z, f.v3.z))
         return xmax-xmin, ymax-ymin, zmax-zmin
+
+
+if __name__ == '__main__':
+    f = Face(Vec3d(0, 0, 0), Vec3d(1, 0, 0), Vec3d(1, 1, 0))

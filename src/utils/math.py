@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 ##
@@ -100,14 +99,15 @@ class Vec3d(object):
         assert isinstance(other, Vec3d)
         return Vec3d(self.x + other.x, self.y + other.y, self.z + other.z)
 
+    def __sub__(self, other):
+        assert isinstance(other, Vec3d)
+        return Vec3d(self.x - other.x, self.y - other.y, self.z - other.z)
+
     def __eq__(self, other):
         assert isinstance(other, (Point, Vec3d))
         if self.x == other.x and self.y == other.y and self.z == other.z:
             return True
         return False
-
-    def __copy__(self):
-        return Vec3d(self.x, self.y, self.z)
 
 
 class Plane(object):
@@ -119,7 +119,7 @@ class Plane(object):
         if not isinstance(normal, Vec3d):
             raise TypeError("Expected Vec3d, got ", type(normal))
         if point is None:
-            point = copy(normal)
+            point = Point().fromVec3d(normal)
             normal.normalize()
 
         self.normal = normal
@@ -130,11 +130,11 @@ class Plane(object):
         Calculates intersection point with the line resulting
         from a point and a direction with the plane.
 
-        point 	Point 	A point of the line.
-        direction 	Vec3d 	Direction of the line.
-                            If None, the normal of the plane will be used instead.
+        point 	Point/Vec3d 	A point of the line.
+        direction 	Vec3d 	    Direction of the line.
+                                If None, the normal of the plane will be used instead.
         """
-        if not isinstance(point, Point):
+        if not isinstance(point, (Point, Vec3d)):
             raise TypeError("Expected Point for point, got ", type(point))
         if not isinstance(direction, (type(None), Vec3d)):
             raise TypeError("Expected Vec3d or None for direction, got ", type(point))
