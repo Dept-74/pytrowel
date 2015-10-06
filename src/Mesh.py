@@ -6,7 +6,7 @@
 # @author: Romain DURAND
 ##
 
-from utils.math import Vec3d, Point
+from utils.math import Vec3d, Point, Plane
 
 
 class Face:
@@ -35,12 +35,34 @@ class Face:
 
     def planeIntersection(self, plane, checkInclusion=True):
         if checkInclusion:
-            d1 = plane.lineIntersection(self.v1) >= 0
-            d2 = plane.lineIntersection(self.v2) >= 0
-            d3 = plane.lineIntersection(self.v3) >= 0
-            if not ((d1 and not (d2 & d3)) or (not d1 and (d2 | d3))):
-                return None
-
+            d1 = plane.distanceToPoint(Point().fromVec3d(self.v1))
+            d2 = plane.distanceToPoint(Point().fromVec3d(self.v2))
+            d3 = plane.distanceToPoint(Point().fromVec3d(self.v3))
+            if (d1 > 0 and d2 > 0 and d3 > 0) or (d1 < 0 and d2 < 0 and d3 < 0):
+                return []
+        if d1 == 0 and d2 == 0 and d3 == 0:
+            return [(Point().fromVec3d(self.v1), Point().fromVec3d(self.v2)),
+                    (Point().fromVec3d(self.v2), Point().fromVec3d(self.v3)),
+                    (Point().fromVec3d(self.v1), Point().fromVec3d(self.v3))]
+        if d1 == 0 and d2 == 0 and d3 != 0:
+            return [(Point().fromVec3d(self.v1), Point().fromVec3d(self.v2))]
+        if d1 == 0 and d3 == 0 and d2 != 0:
+            return [(Point().fromVec3d(self.v1), Point().fromVec3d(self.v3))]
+        if d3 == 0 and d2 == 0 and d1 != 0:
+            return [(Point().fromVec3d(self.v2), Point().fromVec3d(self.v3))]
+        if ((d1 >= 0) and (d2 < 0 and d3 < 0)) or ((d1 < 0) and (d2 >= 0 and d3 >= 0)):
+            p1 = plane.lineIntersection(Point().fromVec3d(self.v1), Vec3d().fromPoints(self.v1, self.v2))
+            p2 = plane.lineIntersection(Point().fromVec3d(self.v1), Vec3d().fromPoints(self.v1, self.v3))
+            return [(p1, p2)]
+        if ((d2 > 0) and (d1 < 0 and d3 < 0)) or ((d2 < 0) and (d1 > 0 and d3 > 0)):
+            p1 = plane.lineIntersection(Point().fromVec3d(self.v2), Vec3d().fromPoints(self.v2, self.v1))
+            p2 = plane.lineIntersection(Point().fromVec3d(self.v2), Vec3d().fromPoints(self.v2, self.v3))
+            return [(p1, p2)]
+        if ((d3 > 0) and (d2 < 0 and d1 < 0)) or ((d3 < 0) and (d2 > 0 and d1 > 0)):
+            p1 = plane.lineIntersection(Point().fromVec3d(self.v3), Vec3d().fromPoints(self.v3, self.v2))
+            p2 = plane.lineIntersection(Point().fromVec3d(self.v3), Vec3d().fromPoints(self.v3, self.v1))
+            return [(p1, p2)]
+        return []
 
 
 class Mesh:
@@ -89,3 +111,5 @@ class Mesh:
 
 if __name__ == '__main__':
     f = Face(Vec3d(0, 0, 0), Vec3d(1, 0, 0), Vec3d(1, 1, 0))
+    print(f.planeIntersection(Plane(Vec3d(0, 0, 1), Point(0, 0, 0)))[0][0],
+          f.planeIntersection(Plane(Vec3d(0, 0, 1), Point(0, 0, 0)))[0][1])

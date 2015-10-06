@@ -32,6 +32,9 @@ class Point(object):
             return True
         return False
 
+    def __str__(self):
+        return '('+str(self.x)+', '+str(self.y)+', '+str(self.z)+')'
+
 
 class Vec3d(object):
     def __init__(self, x=0, y=0, z=0):
@@ -71,7 +74,7 @@ class Vec3d(object):
         Sets the coordinates from those of a point.
         """
         if not isinstance(p, Point):
-            raise TypeError("Expected a Vec3d, got ", type(p))
+            raise TypeError("Expected a Point, got ", type(p))
         self.x = p.x
         self.y = p.y
         self.z = p.z
@@ -81,8 +84,8 @@ class Vec3d(object):
         """
         Sets the coordinates as self is the vector p1->p2
         """
-        if not (isinstance(p1, Point) and isinstance(p2, Point)):
-            raise TypeError("Expected two Vec3d, got ", type(p1), " and ", type(p2))
+        if not (isinstance(p1, (Point, Vec3d)) and isinstance(p2, (Point, Vec3d))):
+            raise TypeError("Expected two Points, got ", type(p1), " and ", type(p2))
         self.x = p2.x - p1.x
         self.y = p2.y - p1.y
         self.z = p2.z - p1.z
@@ -121,6 +124,8 @@ class Plane(object):
         if point is None:
             point = Point().fromVec3d(normal)
             normal.normalize()
+        elif isinstance(point, Vec3d):
+            point = Point().fromVec3d(point)
 
         self.normal = normal
         self.point = point
@@ -130,11 +135,11 @@ class Plane(object):
         Calculates intersection point with the line resulting
         from a point and a direction with the plane.
 
-        point 	Point/Vec3d 	A point of the line.
+        point 	Point       	A point of the line.
         direction 	Vec3d 	    Direction of the line.
                                 If None, the normal of the plane will be used instead.
         """
-        if not isinstance(point, (Point, Vec3d)):
+        if not isinstance(point, Point):
             raise TypeError("Expected Point for point, got ", type(point))
         if not isinstance(direction, (type(None), Vec3d)):
             raise TypeError("Expected Vec3d or None for direction, got ", type(point))
