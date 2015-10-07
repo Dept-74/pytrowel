@@ -50,13 +50,13 @@ class Vec3d(object):
         """
         Modifies the vector to get a normalized vector.
         """
-        self *= 1 / self.magnitude()
+        self *= 1 / self.magnitude
 
     def getNormalized(self):
         """
         Returns the normalized vector without modifying the current vector.
         """
-        return 1 / self.magnitude() * Vec3d(self.x, self.y, self.z)
+        return 1 / self.magnitude * Vec3d(self.x, self.y, self.z)
 
     def dot(self, v2):
         if not isinstance(v2, Vec3d):
@@ -169,7 +169,7 @@ class Plane(object):
         proj = self.lineIntersection(p)
         if proj is None:
             raise SystemError("Something strange happened")
-        d = Vec3d().fromPoints(proj, p).magnitude()
+        d = Vec3d().fromPoints(proj, p).magnitude
         if not signed or Vec3d().fromPoints(proj, p).dot(self.normal) >= 0:
             return d
         # else
