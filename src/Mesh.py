@@ -93,6 +93,11 @@ class Mesh:
         self.computeSorting()
 
     def addFace(self, face):
+        """
+        TODO: Implement binary search
+        :param face: Face
+        :return: self
+        """
         if not isinstance(face, Face):
             raise TypeError("Expected Face, got ", type(face))
         self.faces.append(face)
@@ -106,6 +111,7 @@ class Mesh:
                 self.__byUpperBound[i].zBounds.upper < face.zBounds.upper:
             i += 1
         self.__byUpperBound.insert(i, face)
+        return self
 
     def computeCentroid(self):
         """
@@ -139,6 +145,28 @@ class Mesh:
             zmax = max(zmax, max(f.v1.z, f.v2.z, f.v3.z))
         return xmax - xmin, ymax - ymin, zmax - zmin
 
+    def selectIntersectingFaces(self, zValue: int):
+        """
+        TODO: Implement binary search
+        Finds every face that has at least one point at z = zValue.
+        :param zValue: int  Height of the intersecting plane.
+        :return: list<Face>
+        """
+        i = 0
+        while i < len(self.__byLowerBound) and \
+                self.__byLowerBound[i].zBounds.lower <= zValue:
+            i += 1
+        facesUnderPlane = self.__byLowerBound[:i]
+
+        i = len(self.__byUpperBound)-1
+        while i > 0 and \
+                self.__byUpperBound[i].zBounds.upper > zValue:
+            i -= 1
+        facesOverPlane = self.__byUpperBound[i:]
+
+        # Now we calculate the intersection of the two lists
+        return list(set(facesUnderPlane).intersection(set(facesOverPlane)))
+
 
 if __name__ == '__main__':
     f = Face(Vec3d(0, 0, 0), Vec3d(1, 0, 0), Vec3d(1, 1, 0))
@@ -151,3 +179,8 @@ if __name__ == '__main__':
     m = Mesh('Test')
     m.addFaces([f, f2, f3])
     m.addFace(f4)
+    print(m.selectIntersectingFaces(0))
+    print(f)
+    print(f2)
+    print(f3)
+    print(f4)
