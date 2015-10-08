@@ -7,6 +7,7 @@
 ##
 
 from utils.math import Vec3d, Point, Plane
+from utils.stl_file import openStl
 from collections import namedtuple
 
 ZBounds = namedtuple("ZBounds", ["lower", "upper"])
@@ -40,13 +41,12 @@ class Face:
                      (self.v1.y + self.v2.y + self.v3.y) / 3,
                      (self.v1.z + self.v2.z + self.v3.z) / 3)
 
-    def planeIntersection(self, plane, checkInclusion=True):
-        if checkInclusion:
-            d1 = plane.distanceToPoint(self.v1)
-            d2 = plane.distanceToPoint(self.v2)
-            d3 = plane.distanceToPoint(self.v3)
-            if (d1 > 0 and d2 > 0 and d3 > 0) or (d1 < 0 and d2 < 0 and d3 < 0):
-                return []
+    def planeIntersection(self, plane):
+        d1 = plane.distanceToPoint(self.v1)
+        d2 = plane.distanceToPoint(self.v2)
+        d3 = plane.distanceToPoint(self.v3)
+        if (d1 > 0 and d2 > 0 and d3 > 0) or (d1 < 0 and d2 < 0 and d3 < 0):
+            return []
         if d1 == 0 and d2 == 0 and d3 == 0:
             return [(Point().fromVec3d(self.v1), Point().fromVec3d(self.v2)),
                     (Point().fromVec3d(self.v2), Point().fromVec3d(self.v3)),
@@ -73,12 +73,13 @@ class Face:
 
 
 class Mesh:
-    def __init__(self, name: str):
+    def __init__(self, name: str, file: str):
         assert isinstance(name, str)
         self.name = name
-        self.faces = []
+        self.faces = Mesh.readStlTriangles(openStl(file))
         self.__byLowerBound = []
         self.__byUpperBound = []
+        self.computeSorting()
 
     def computeSorting(self):
         self.__byLowerBound = list(self.faces)
@@ -91,6 +92,7 @@ class Mesh:
             raise TypeError("Expected list, got ", type(faces))
         self.faces.extend(faces)
         self.computeSorting()
+        return self
 
     def addFace(self, face):
         """
@@ -112,6 +114,20 @@ class Mesh:
             i += 1
         self.__byUpperBound.insert(i, face)
         return self
+
+    @staticmethod
+    def readStlTriangles(triangles):
+        """
+        Converts a list of tuples to list of Faces
+        :param triangles: Return list from openStl
+        :return: list<Face>
+        """
+        fa = list()
+        for tr in triangles:
+            fa.append(Face(Vec3d(tr[0][0], tr[0][1], tr[0][2]),
+                           Vec3d(tr[1][0], tr[1][1], tr[1][2]),
+                           Vec3d(tr[2][0], tr[2][1], tr[2][2])))
+        return fa
 
     def computeCentroid(self):
         """
@@ -176,11 +192,5 @@ if __name__ == '__main__':
     print(f.planeIntersection(Plane(Vec3d(0, 0, 1), Point(0, 0, 0)))[0][0],
           f.planeIntersection(Plane(Vec3d(0, 0, 1), Point(0, 0, 0)))[0][1])
     print(f.zBounds)
-    m = Mesh('Test')
-    m.addFaces([f, f2, f3])
-    m.addFace(f4)
-    print(m.selectIntersectingFaces(0))
-    print(f)
-    print(f2)
-    print(f3)
-    print(f4)
+    m = Mesh('Test', "/home/romain/Bureau/3D PRINT/S-Plugs.stl")
+

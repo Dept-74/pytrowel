@@ -12,12 +12,14 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from PyQt4.QtGui import QApplication, QWidget
 from PyQt4.QtOpenGL import QGLWidget
+from Mesh import Mesh
 
 
 class GLViewWidget(QGLWidget):
     def __init__(self, parent):
         super(QGLWidget, self).__init__(parent)
         self.setMinimumSize(560, 480)
+        self.mesh = Mesh('Test', "/home/romain/Bureau/3D PRINT/S-Plugs.stl")
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT)
