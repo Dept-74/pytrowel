@@ -23,7 +23,7 @@ class Face:
 
     @property
     def normal(self):
-        return (self.v2 - self.v1).cross(self.v3 - self.v1).normalize()
+        return (self.v2 - self.v1).cross(self.v3 - self.v1).getNormalized()
 
     @property
     def zBounds(self):
@@ -125,10 +125,12 @@ class Mesh:
         return fa
 
     def displayGL(self):
+        sun = Vec3d(-1, -1, 1)
         glBegin(GL_TRIANGLES)
-        from random import random
+        x, y, z = self.getBoundingBoxDimensions()
+        zh = self.computeCentroid().z
         for face in self.faces:
-            c = random()
+            c = 0.9-abs(face.normal.angleWith(sun))*(0.7/3.14)-0.2*(face.zBounds.upper/z)
             glColor3f(c, c, c)
             glVertex3f(face.v1.x, face.v1.y, face.v1.z)
             glVertex3f(face.v2.x, face.v2.y, face.v2.z)
@@ -207,17 +209,17 @@ class Mesh:
             zmax = max(zmax, max(f.v1.z, f.v2.z, f.v3.z))
         return xmax - xmin, ymax - ymin, zmax - zmin
 
-    def selectIntersectingFaces(self, zValue: int):
+    def selectIntersectingFaces(self, zValue: float):
         """
         Find every face that has at least one point at z = zValue.
-        :param zValue: int  Height of the intersecting plane.
+        :param zValue: float  Height of the intersecting plane.
         :return: list<Face>
         """
         i = bisect_right(list(map(lambda x: x.zBounds.lower, self.__byLowerBound)), zValue)
         facesUnderPlane = self.__byLowerBound[:i]
 
         i = bisect_left(list(map(lambda x: x.zBounds.upper, self.__byUpperBound)), zValue)
-        facesOverPlane = self.__byUpperBound[i:]
+        facesOverPlane = self.__byUpperBound[i-1:]
 
         return list(set(facesUnderPlane).intersection(set(facesOverPlane)))
 
@@ -230,8 +232,22 @@ if __name__ == '__main__':
     print(f.planeIntersection(Plane(Vec3d(0, 0, 1), Point(0, 0, 0)))[0][0],
           f.planeIntersection(Plane(Vec3d(0, 0, 1), Point(0, 0, 0)))[0][1])
     print(f.zBounds)
-    m = Mesh('Test', "/home/romain/Bureau/3D PRINT/20mm-box.stl")
-    print(m.getBoundingBoxDimensions())
-    m.scale(1/2)
-    print(m.getBoundingBoxDimensions())
 
+    m = Mesh('Test', "/home/romain/Bureau/3D PRINT/SanguinololuEnclosureBot_Doom.stl")
+    p = Plane(Vec3d(0, 0, 1))
+    segs = list()
+    for f in m.selectIntersectingFaces(1):
+        segs.extend(f.planeIntersection(p))
+
+    import pylab as pl
+    from matplotlib import collections as mc
+
+    for i in range(len(segs)):
+        segs[i] = [(segs[i][0].x, segs[i][0].y), (segs[i][1].x, segs[i][1].y)]
+
+    lc = mc.LineCollection(segs, linewidths=2)
+    fig, ax = pl.subplots()
+    ax.add_collection(lc)
+    pl.axis('equal')
+    ax.margins(0.1)
+    pl.show()

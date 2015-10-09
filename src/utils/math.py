@@ -70,6 +70,14 @@ class Vec3d(object):
                      self.z*v2.x-v2.z*self.x,
                      self.x*v2.y-v2.x*self.y)
 
+    def angleWith(self, v):
+        costh = self.dot(v)/(self.magnitude*v.magnitude)
+        if 1/(self.magnitude*v.magnitude)*self.cross(v).magnitude >= 0:
+            th = math.acos(costh)
+        else:
+            th = -math.acos(costh)
+        return th
+
     def rotate(self, angle, v):
         """
         Rodrigues' rotation of self.
@@ -113,7 +121,7 @@ class Vec3d(object):
 
     def __mul__(self, other):
         warn("Scalars should be placed before vectors", DeprecationWarning)
-        self.__rmul__(other)
+        return self.__rmul__(other)
 
     def __add__(self, other):
         assert isinstance(other, Vec3d)
