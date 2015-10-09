@@ -70,6 +70,22 @@ class Vec3d(object):
                      self.z*v2.x-v2.z*self.x,
                      self.x*v2.y-v2.x*self.y)
 
+    def rotate(self, angle, v):
+        """
+        Rodrigues' rotation of self.
+        :param angle: float Angle in degrees
+        :param v: Vec3d     Unit vector describing an axis of
+                            rotation with point (0, 0, 0)
+        :return: None
+        """
+        v.normalize()
+        a = angle*math.pi/180
+        res = math.cos(a)*self + math.sin(a)*(v.cross(self)) +\
+               (1-math.cos(a))*(v.dot(self)*v)
+        self.x = res.x
+        self.y = res.y
+        self.z = res.z
+
     def fromPoint(self, p):
         """
         Set the coordinates from those of a point.

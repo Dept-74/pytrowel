@@ -30,21 +30,6 @@ class Face:
         return ZBounds(lower=min(self.v1.z, self.v2.z, self.v3.z),
                        upper=max(self.v1.z, self.v2.z, self.v3.z))
 
-    def scale(self, ratio, center=None):
-        """
-        Scale the face without changing its centroid,
-        or according to the optional parameter centroid.
-        :param ratio: float
-        :param center: Point  Centroid to use as center of transformation.
-        :return: None
-        """
-        if center is None:
-            center = self.getCentroid()
-        c = Vec3d().fromPoint(center)
-        self.v1 = ratio*(self.v1 - c) + c
-        self.v2 = ratio*(self.v2 - c) + c
-        self.v3 = ratio*(self.v3 - c) + c
-
     def flipVertexOrder(self):
         self.v1, self.v3 = self.v3, self.v1
         return self
@@ -167,9 +152,42 @@ class Mesh:
         return Point(x / l, y / l, z / l)
 
     def scale(self, ratio):
-        c = self.computeCentroid()
+        """
+        Scale the mesh without changing its original centroid.
+        :param ratio: float
+        :return: None
+        """
+        c = Vec3d().fromPoint(self.computeCentroid())
         for f in self.faces:
-            f.scale(ratio, c)
+            f.v1 = ratio*(f.v1 - c) + c
+            f.v2 = ratio*(f.v2 - c) + c
+            f.v3 = ratio*(f.v3 - c) + c
+
+    def move(self, v):
+        """
+        Move the mesh to the location pointed by v.
+        :param v: Vec3d  Translation vector
+        :return: None
+        """
+        for f in self.faces:
+            f.v1 += v
+            f.v2 += v
+            f.v3 += v
+
+    def rotate(self, angle, v):
+        """
+        Rotate the mesh of angle (degrees) around v
+        :param v: Vec3d  Rotation vector.
+        :param angle: float
+        :return: None
+        """
+        pos = self.computeCentroid()
+        self.move(-1*Vec3d().fromPoint(pos))
+        for f in self.faces:
+            f.v1.rotate(angle, v)
+            f.v2.rotate(angle, v)
+            f.v3.rotate(angle, v)
+        self.move(Vec3d().fromPoint(pos))
 
     def getBoundingBoxDimensions(self):
         """

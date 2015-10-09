@@ -21,6 +21,8 @@ class GLViewWidget(QGLWidget):
         self.setMinimumSize(560, 480)
         self.mesh = Mesh('Test', "/home/romain/Bureau/3D PRINT/SanguinololuEnclosureBot_Doom.stl")
         self.mesh.scale(1/2)
+        from utils.math import Vec3d
+        self.mesh.rotate(20, Vec3d(0, 1, 0))
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT)
