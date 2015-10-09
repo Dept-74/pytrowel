@@ -6,9 +6,11 @@
 # @author: Romain DURAND
 ##
 
+from OpenGL.GL import *
 from utils.math import Vec3d, Point, Plane
 from utils.stl_file import openStl
 from collections import namedtuple
+from utils.lists import insort, bisect_left, bisect_right
 
 ZBounds = namedtuple("ZBounds", ["lower", "upper"])
 
@@ -34,7 +36,7 @@ class Face:
 
     def getCentroid(self):
         """
-        Calculates the centroid of the face.
+        Calculate the centroid of the face.
         :return: Point
         """
         return Point((self.v1.x + self.v2.x + self.v3.x) / 3,
@@ -73,10 +75,12 @@ class Face:
 
 
 class Mesh:
-    def __init__(self, name: str, file: str):
+    def __init__(self, name: str, file: str=None):
         assert isinstance(name, str)
         self.name = name
-        self.faces = Mesh.readStlTriangles(openStl(file))
+        self.faces = list()
+        if file is not None:
+            self.faces = Mesh.readStlTriangles(openStl(file))
         self.__byLowerBound = []
         self.__byUpperBound = []
         self.computeSorting()
@@ -96,29 +100,20 @@ class Mesh:
 
     def addFace(self, face):
         """
-        TODO: Implement binary search
         :param face: Face
         :return: self
         """
         if not isinstance(face, Face):
             raise TypeError("Expected Face, got ", type(face))
         self.faces.append(face)
-        i = 0
-        while i < len(self.__byLowerBound) and \
-                self.__byLowerBound[i].zBounds.lower < face.zBounds.lower:
-            i += 1
-        self.__byLowerBound.insert(i, face)
-        i = 0
-        while i < len(self.__byUpperBound) and \
-                self.__byUpperBound[i].zBounds.upper < face.zBounds.upper:
-            i += 1
-        self.__byUpperBound.insert(i, face)
+        insort(self.__byLowerBound, face, key=lambda x: x.zBounds.lower)
+        insort(self.__byUpperBound, face, key=lambda x: x.zBounds.upper)
         return self
 
     @staticmethod
     def readStlTriangles(triangles):
         """
-        Converts a list of tuples to list of Faces
+        Convert a list of tuples to list of Faces
         :param triangles: Return list from openStl
         :return: list<Face>
         """
@@ -129,9 +124,21 @@ class Mesh:
                            Vec3d(tr[2][0], tr[2][1], tr[2][2])))
         return fa
 
+    def displayGL(self):
+        glBegin(GL_TRIANGLES)
+        from random import random
+        for face in self.faces:
+            c = random()
+            glColor3f(c, c, c)
+            glVertex3f(face.v1.x, face.v1.y, face.v1.z)
+            glVertex3f(face.v2.x, face.v2.y, face.v2.z)
+            glVertex3f(face.v3.x, face.v3.y, face.v3.z)
+
+        glEnd()
+
     def computeCentroid(self):
         """
-        Computes the average position of all vertices.
+        Compute the average position of all vertices.
         :return: Point
         """
         x, y, z = 0
@@ -163,24 +170,16 @@ class Mesh:
 
     def selectIntersectingFaces(self, zValue: int):
         """
-        TODO: Implement binary search
-        Finds every face that has at least one point at z = zValue.
+        Find every face that has at least one point at z = zValue.
         :param zValue: int  Height of the intersecting plane.
         :return: list<Face>
         """
-        i = 0
-        while i < len(self.__byLowerBound) and \
-                self.__byLowerBound[i].zBounds.lower <= zValue:
-            i += 1
+        i = bisect_right(list(map(lambda x: x.zBounds.lower, self.__byLowerBound)), zValue)
         facesUnderPlane = self.__byLowerBound[:i]
 
-        i = len(self.__byUpperBound)-1
-        while i > 0 and \
-                self.__byUpperBound[i].zBounds.upper > zValue:
-            i -= 1
+        i = bisect_left(list(map(lambda x: x.zBounds.upper, self.__byUpperBound)), zValue)
         facesOverPlane = self.__byUpperBound[i:]
 
-        # Now we calculate the intersection of the two lists
         return list(set(facesUnderPlane).intersection(set(facesOverPlane)))
 
 
@@ -192,5 +191,8 @@ if __name__ == '__main__':
     print(f.planeIntersection(Plane(Vec3d(0, 0, 1), Point(0, 0, 0)))[0][0],
           f.planeIntersection(Plane(Vec3d(0, 0, 1), Point(0, 0, 0)))[0][1])
     print(f.zBounds)
-    m = Mesh('Test', "/home/romain/Bureau/3D PRINT/S-Plugs.stl")
+    m = Mesh('Test')
+    m.addFace(f).addFace(f2).addFace(f3).addFace(f4)
+    print(m.faces)
+    print(m.selectIntersectingFaces(-1))
 

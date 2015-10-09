@@ -18,8 +18,8 @@ class Point(object):
 
     def fromVec3d(self, v):
         """
-        Sets coordinates from a Vec3d.
-        Returns self.
+        Set coordinates from a Vec3d.
+        Return self.
         """
         if not isinstance(v, Vec3d):
             raise TypeError("Expected Vec3d, got ", type(v))
@@ -48,13 +48,13 @@ class Vec3d(object):
 
     def normalize(self):
         """
-        Modifies the vector to get a normalized vector.
+        Modify the vector to get a normalized vector.
         """
         self *= 1 / self.magnitude
 
     def getNormalized(self):
         """
-        Returns the normalized vector without modifying the current vector.
+        Return the normalized vector without modifying the current vector.
         """
         return 1 / self.magnitude * Vec3d(self.x, self.y, self.z)
 
@@ -72,7 +72,7 @@ class Vec3d(object):
 
     def fromPoint(self, p):
         """
-        Sets the coordinates from those of a point.
+        Set the coordinates from those of a point.
         """
         if not isinstance(p, Point):
             raise TypeError("Expected a Point, got ", type(p))
@@ -83,7 +83,7 @@ class Vec3d(object):
 
     def fromPoints(self, p1, p2):
         """
-        Sets the coordinates as self is the vector p1->p2
+        Set the coordinates as self is the vector p1->p2
         """
         if not (isinstance(p1, (Point, Vec3d)) and isinstance(p2, (Point, Vec3d))):
             raise TypeError("Expected two Points, got ", type(p1), " and ", type(p2))
@@ -117,7 +117,7 @@ class Vec3d(object):
 class Plane(object):
     def __init__(self, normal, point=None):
         """
-        Initializes a plane defined by a normal Vec3d and a Point.
+        Initialize a plane defined by a normal Vec3d and a Point.
         If point is None, normal will be used.
         """
         if not isinstance(normal, Vec3d):
@@ -133,7 +133,7 @@ class Plane(object):
 
     def lineIntersection(self, point, direction=None):
         """
-        Calculates intersection point with the line resulting
+        Calculate intersection point with the line resulting
         from a point and a direction with the plane.
 
         point 	Point / Vec3d  	A point of the line.
@@ -162,7 +162,7 @@ class Plane(object):
 
     def distanceToPoint(self, p, signed=True):
         """
-        Calculates the euclidian distance from a point to the plane.
+        Calculate the euclidian distance from a point to the plane.
         """
         if not isinstance(p, (Point, Vec3d)):
             raise TypeError("Expected Point or Vec3d for p, got ", type(p))
