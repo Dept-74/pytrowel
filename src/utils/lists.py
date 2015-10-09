@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
+##
+# List computation functions
+#
 # @author: Romain DURAND
+##
 
 
 def insort(a, x, key=lambda x: x):

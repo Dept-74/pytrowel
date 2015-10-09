@@ -20,12 +20,14 @@ class GLViewWidget(QGLWidget):
         super(QGLWidget, self).__init__(parent)
         self.setMinimumSize(560, 480)
         self.mesh = Mesh('Test', "/home/romain/Bureau/3D PRINT/SanguinololuEnclosureBot_Doom.stl")
+        self.mesh.scale(1/2)
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT)
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        glTranslatef(0, 0, -80.0)
+        glRotate(10, 0, 1, 0)
+        glTranslatef(-30, -55, -80.0)
         self.mesh.displayGL()
 
     def resizeGL(self, w, h):

@@ -118,7 +118,7 @@ class Plane(object):
     def __init__(self, normal, point=None):
         """
         Initialize a plane defined by a normal Vec3d and a Point.
-        If point is None, normal will be used.
+        If point is None, self.normal will be used.
         """
         if not isinstance(normal, Vec3d):
             raise TypeError("Expected Vec3d, got ", type(normal))
@@ -136,9 +136,9 @@ class Plane(object):
         Calculate intersection point with the line resulting
         from a point and a direction with the plane.
 
-        point 	Point / Vec3d  	A point of the line.
-        direction 	Vec3d 	    Direction of the line.
-                                If None, the normal of the plane will be used instead.
+        :param: point 	Point / Vec3d  	A point of the line.
+        :param: direction 	Vec3d 	    Direction of the line.
+                                        If None, the normal of the plane will be used instead.
         """
         if not isinstance(point, Point):
             if isinstance(point, Vec3d):

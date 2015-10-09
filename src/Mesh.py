@@ -30,6 +30,21 @@ class Face:
         return ZBounds(lower=min(self.v1.z, self.v2.z, self.v3.z),
                        upper=max(self.v1.z, self.v2.z, self.v3.z))
 
+    def scale(self, ratio, center=None):
+        """
+        Scale the face without changing its centroid,
+        or according to the optional parameter centroid.
+        :param ratio: float
+        :param center: Point  Centroid to use as center of transformation.
+        :return: None
+        """
+        if center is None:
+            center = self.getCentroid()
+        c = Vec3d().fromPoint(center)
+        self.v1 = ratio*(self.v1 - c) + c
+        self.v2 = ratio*(self.v2 - c) + c
+        self.v3 = ratio*(self.v3 - c) + c
+
     def flipVertexOrder(self):
         self.v1, self.v3 = self.v3, self.v1
         return self
@@ -133,7 +148,6 @@ class Mesh:
             glVertex3f(face.v1.x, face.v1.y, face.v1.z)
             glVertex3f(face.v2.x, face.v2.y, face.v2.z)
             glVertex3f(face.v3.x, face.v3.y, face.v3.z)
-
         glEnd()
 
     def computeCentroid(self):
@@ -141,7 +155,9 @@ class Mesh:
         Compute the average position of all vertices.
         :return: Point
         """
-        x, y, z = 0
+        x = 0
+        y = 0
+        z = 0
         for face in self.faces:
             center = face.getCentroid()
             x += center.x
@@ -149,6 +165,11 @@ class Mesh:
             z += center.z
         l = len(self.faces)
         return Point(x / l, y / l, z / l)
+
+    def scale(self, ratio):
+        c = self.computeCentroid()
+        for f in self.faces:
+            f.scale(ratio, c)
 
     def getBoundingBoxDimensions(self):
         """
@@ -191,8 +212,8 @@ if __name__ == '__main__':
     print(f.planeIntersection(Plane(Vec3d(0, 0, 1), Point(0, 0, 0)))[0][0],
           f.planeIntersection(Plane(Vec3d(0, 0, 1), Point(0, 0, 0)))[0][1])
     print(f.zBounds)
-    m = Mesh('Test')
-    m.addFace(f).addFace(f2).addFace(f3).addFace(f4)
-    print(m.faces)
-    print(m.selectIntersectingFaces(-1))
+    m = Mesh('Test', "/home/romain/Bureau/3D PRINT/20mm-box.stl")
+    print(m.getBoundingBoxDimensions())
+    m.scale(1/2)
+    print(m.getBoundingBoxDimensions())
 
